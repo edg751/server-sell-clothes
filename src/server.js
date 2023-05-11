@@ -11,6 +11,11 @@ const app = express(); //Để sd thì phải gọi đến hàm express
 const port = process.env.PORT; // Lấy port bên biến môi trường
 
 //MIDDLEWARE  (Config như này hỗ trợ gửi DATA từ CLIENT lên SERVER)
+
+var cors = require('cors')
+
+app.use(cors()) // Use this after the variable declaration
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
