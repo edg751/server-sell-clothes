@@ -7,7 +7,7 @@ let userLogin = async (req, res) => {
   const password=req.body.password;
 
 try { 
-  const array = await pool.execute(`SELECT * FROM admins WHERE email = '${email}' AND password = '${password}'`);
+  const array = await pool.execute(`SELECT * FROM users WHERE email = '${email}' AND password = '${password}'`);
 
   if(array[0].length!=0){
     const token = jwt.sign({ id: array[0].id }, "mysecret", {
@@ -22,12 +22,12 @@ try {
   }
   
 } catch (error) {
-  
-}
-return res
-.status(500)
-.json({ message: "Có lỗi" });
+  return res
+  .status(500)
+  .json({ message: `Có lỗi ${error}` });
 };
+}
+
 
 
 let getAllItems = async (req, res) => {

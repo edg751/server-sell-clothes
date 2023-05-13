@@ -1,5 +1,5 @@
 import express from 'express'; //Import thư viện express;
-import configViewEngine from './configs/viewEngine';
+
 import initAPIRoute from './route/api';
 
 const cookieParser = require('cookie-parser')
@@ -20,7 +20,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-configViewEngine(app); //app là express app
 
 app.get("/", (req, res) => {
   res.send("SERVER ON");
