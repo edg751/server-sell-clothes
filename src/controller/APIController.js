@@ -28,6 +28,25 @@ try {
 };
 }
 
+let userRegister = async (req, res) => {
+  const moment = require('moment');
+  const currentDate = moment().format('YYYY-MM-DD HH:mm:ss');
+
+  const email = req.body.email;
+  const password = req.body.password;
+  const fullname = req.body.fullname;
+  try {
+    const array = await pool.execute(`SELECT * FROM users WHERE email = '${email}'`);
+    if (array[0].length === 0) {
+      await pool.execute(`INSERT INTO users (email, password,full_name,date_created) VALUES ('${email}', '${password}', '${fullname}','${currentDate}')`);
+      return res.status(201).json({ message: "Đăng ký thành công" });
+    } else {
+      return res.status(401).json({ message: "Email đã tồn tại" });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: `Có lỗi ${error}` });
+  }
+};
 
 
 let getAllItems = async (req, res) => {
@@ -42,5 +61,6 @@ let getAllItems = async (req, res) => {
 
 module.exports = {
   userLogin,
+  userRegister,
   getAllItems,
 };

@@ -4,7 +4,9 @@ let router = express.Router(); //Gọi để nó biết đây là router
 
 const initAPIRoute = (app) => {
   router.get("/all", APIController.getAllItems);
-  router.post("/auth/login",APIController.userLogin)
+  router.post("/auth/login",APIController.userLogin);
+  router.post("/auth/register",APIController.userRegister);
+
   return app.use("", router);
 };
 
