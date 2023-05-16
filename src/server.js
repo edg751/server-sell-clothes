@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
   res.send("SERVER ON");
 });
 
-//Init api route
+//Init api routee
 initAPIRoute(app);
 
 
