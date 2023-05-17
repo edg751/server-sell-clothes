@@ -1,0 +1,32 @@
+import PropTypes from "prop-types";
+import { Box, Container, Grid, Paper } from "@mui/material";
+import styled from "@emotion/styled";
+
+const GridLeft = styled(Grid)`
+  width: 250px;
+
+  p {
+    /* Áp dụng CSS cho phần tử <p> */
+    /* Ví dụ: */
+    color: red;
+  }
+`;
+
+
+    <Box>
+      <Container>
+        {/* ROW */}
+        <Grid container spacing={1}>
+          {/* COLUMN LEFT */}
+          <GridLeft item>
+            <Paper elevation={0}>
+              <p>hello</p>
+              {/* <ProductFilter
+                filters={Filter}
+                onChange={handleFilterChange}
+              ></ProductFilter> */}
+            </Paper>
+          </GridLeft>
+        </Grid>
+      </Container>
+    </Box>
