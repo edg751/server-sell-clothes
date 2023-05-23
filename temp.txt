@@ -24,7 +24,7 @@ const GridLeft = styled(Grid)`
               {/* <ProductFilter
                 filters={Filter}
                 onChange={handleFilterChange}
-              ></ProductFilter> */}
+              ></ProductFilter> */}sss
             </Paper>
           </GridLeft>
         </Grid>

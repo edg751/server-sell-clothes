@@ -49,6 +49,7 @@ let userRegister = async (req, res) => {
 };
 
 
+
 let getAllItems = async (req, res) => {
   const array = await pool.execute("SELECT * FROM Products");
   
