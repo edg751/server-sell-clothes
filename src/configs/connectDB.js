@@ -7,7 +7,7 @@ const pool = mysql.createPool({
   port: 3306,
   user:'root',
   password:'',
-  database:'db_tttn'
+  database:'databasetotestlvtn'
 });
 
 export default pool;
