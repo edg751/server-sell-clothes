@@ -2,14 +2,15 @@ import OderModel from "../model/oderModel";
 class OrderController {
     static async order(req, res) {
         try {
-        const email = req.body.email;
-        const password = req.body.password;
-        const fullname = req.body.name;
         const address=req.body.address;
         const numberphone=req.body.numberphone;
         const totalprice=req.body.totalprice;
         const cartdata=req.body.cartdata;
-          const result = await OderModel.order(email, password, fullname,address,numberphone,totalprice,cartdata);
+        const userId=req.body.userId;
+        const name=req.body.name;
+
+
+          const result = await OderModel.order(address,numberphone,totalprice,cartdata,userId,name);
           if (result.status === 201) {
             return res.status(201).json({ message: "Đăng ký thành công" });
           }
@@ -44,6 +45,26 @@ class OrderController {
       static async order_info(req, res) {
         try {
           const list = await OderModel.order_info(req.query.orderid);
+          return res.status(200).json(list);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async update_order(req, res) {
+        try {
+          const list = await OderModel.update_order(req.body.orderid);
+          return res.status(200).json(list);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async update_order_2(req, res) {
+        try {
+          const list = await OderModel.update_order_2(req.body.orderid);
           return res.status(200).json(list);
         } catch (error) {
           console.error(error);

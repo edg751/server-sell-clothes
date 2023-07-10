@@ -341,6 +341,47 @@ class ProductModel {
       }
     }
 
+    // COLOR
+    static async postAddColor(colorName,colorCode) {
+      try {
+        const [rows, fields]= await pool.execute(`INSERT INTO mau (color_name,color_code) VALUES ('${colorName}','${colorCode}')`);
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getDetailColor(colorId) {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT * FROM mau WHERE color_id=${colorId}`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getAllColor() {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT * FROM mau`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async postUpdateColor(colorName,colorCode,colorId) {
+      try {
+        const [rows, fields]= await pool.execute(`UPDATE mau SET color_name = '${colorName}',color_code = '${colorCode}' WHERE mau.color_id = ${colorId}`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+// SIZE
     static async getSize() {
       try {
         const [rows, fields] = await pool.execute(`SELECT * from kich_thuoc`);
@@ -370,6 +411,7 @@ class ProductModel {
         throw new Error('Lỗi khi lấy danh sách sản phẩm');
       }
     }
+
 
 
 

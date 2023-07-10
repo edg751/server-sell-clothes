@@ -254,6 +254,47 @@ class ProductController {
         return res.status(500).json({ error: 'Lỗi server' });
       }
     }
+        // COLOR
+    static async postAddColor(req, res) {
+      try { 
+        const products = await ProductModel.postAddColor(req.body.color_name,req.body.color_code);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getAllColor(req, res) {
+      try { 
+        const products = await ProductModel.getAllColor();
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getDetailColor(req, res) {
+      try { 
+        const products = await ProductModel.getDetailColor(req.query.color_id);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async postUpdateColor(req, res) {
+      try { 
+        const products = await ProductModel.postUpdateColor(req.body.color_name,req.body.color_code,req.body.color_id);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
 
 
   }

@@ -41,5 +41,14 @@ class UserModel {
         }
       }      
       
+      static async getAddress(userId) {
+        try {
+          const [rows, fields]= await pool.execute(`SELECT * FROM thong_tin_lien_lac WHERE user_id=${userId}`)    
+          return rows;
+        } catch (error) {
+          console.error(error);
+          throw new Error('Lỗi khi lấy danh sách màu');
+        }
+      }
 }
 module.exports = UserModel;

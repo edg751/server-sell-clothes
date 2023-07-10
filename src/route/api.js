@@ -29,11 +29,20 @@ const initAPIRoute = (app) => {
 
   router.post('/api/auth/register',UserController.userRegister);
   router.post('/api/auth/login',UserController.userLogin);
+  router.get('/api/user/address',UserController.getAddress);
+
+
 
   router.post('/api/order',orderController.order);
+  router.post('/api/admin/update_order',orderController.update_order);
+  router.post('/api/admin/update_order_2',orderController.update_order_2);
+
+  
+
   router.get('/api/admin/order_wait',orderController.order_list_wait);
   router.get('/api/admin/order_detail',orderController.order_detail);
   router.get('/api/admin/order_info',orderController.order_info);
+  
 
   router.post('/api/admin/add_product',ProductController.postAddProduct);
   router.post('/api/admin/update_quantity_product', ProductController.postUpdateQuantityProduct);
@@ -47,6 +56,11 @@ const initAPIRoute = (app) => {
   router.get('/api/admin/detail_material',ProductController.getDetailMaterial);
   router.get('/api/admin/get_all_material',ProductController.getAllMaterial);
   router.post('/api/admin/update_material',ProductController.postUpdateMaterial);
+
+  router.post('/api/admin/add_color',ProductController.postAddColor);
+  router.get('/api/admin/detail_color',ProductController.getDetailColor);
+  router.get('/api/admin/get_all_color',ProductController.getAllColor);
+  router.post('/api/admin/update_color',ProductController.postUpdateColor);
 
   router.post('/api/admin/add_style',ProductController.postAddStyle);
   router.get('/api/admin/detail_style',ProductController.getDetailStyle);

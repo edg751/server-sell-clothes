@@ -30,5 +30,15 @@ class UserController {
           return res.status(401).json({ message: error.message });
         }
       };
+
+      static async getAddress(req, res) {
+        try { 
+          const products = await UserModel.getAddress(req.query.user_id);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
 }
 module.exports = UserController;
