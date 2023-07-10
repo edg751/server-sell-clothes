@@ -1,4 +1,4 @@
-import pool from "../configs/connectDB";
+import pool from "./src/configs/connectDB";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 let userLogin = async (req, res) => {
@@ -50,21 +50,112 @@ let userRegister = async (req, res) => {
 
 
 let getAllItems = async (req, res) => {
-  const array = await pool.execute(`SELECT san_pham.product_id, san_pham.product_name, san_pham.price FROM san_pham WHERE san_pham.gender = ${req.query.gender}`);
-  
-  for (const obj of array[0]) {
-    const arrayColor = await pool.execute(`SELECT DISTINCT color FROM chi_tiet_sp WHERE product_id = ${obj.product_id}`);
-    const arrayImage = await pool.execute(` SELECT DISTINCT image_id,color,image_link from hinh_anh WHERE hinh_anh.is_represent=1 AND product_id = ${obj.product_id}`);
-    const colors = arrayColor[0].map((item) => item.color);
-    const images =arrayImage[0].map((item) => item);
-    obj.color = colors;
-    obj.image=images;
-  }
+  try{
+    const { page, pageSize, gender, category,color,price,style,material, orderBy } = req.query;
+    const offset = (page - 1) * pageSize;
 
-  return res.status(200).json({
-    data: array[0],
-  });
+    let query = `
+      SELECT DISTINCT san_pham.product_id, san_pham.product_name, san_pham.price
+      FROM san_pham
+      JOIN chi_tiet_sp ON san_pham.product_id = chi_tiet_sp.product_id join loai_sp on loai_sp.category_id=san_pham.category_id
+      WHERE san_pham.gender = ${gender}`;
+
+    if (category) {
+      const categoryArray = Array.isArray(category) ? category : [category];
+      const categoryCondition = categoryArray.map(category => `loai_sp.category_name = '${category}'`).join(' OR ');
+      query += ` AND (${categoryCondition})`;
+    }
+
+    if (color) {
+      const colorArray = Array.isArray(color) ? color : [color];
+      const colorCondition = colorArray.map(color => `chi_tiet_sp.color = '${color}'`).join(' OR ');
+      query += ` AND (${colorCondition})`;
+    }
+
+    if (style) {
+      const styleArray = Array.isArray(style) ? style : [style];
+      const styleCondition = styleArray.map(style => `phong_cach.style_name = '${style}'`).join(' OR ');
+      query += ` AND (${styleCondition})`;
+    }
+
+    if (material) {
+      const materialArray = Array.isArray(material) ? material : [material];
+      const materialCondition = materialArray.map(material => `phong_cach.material_name = '${material}'`).join(' OR ');
+      query += ` AND (${materialCondition})`;
+    }
+
+if (price) {
+  let priceCondition = '';
+  
+  if (price === 'lessThan100k') {
+    priceCondition = "san_pham.price < 100000";
+  } else if (price === '100kTo250k') {
+    priceCondition = "san_pham.price >= 100000 AND san_pham.price <= 250000";
+  } else if (price === '250kTo500k') {
+    priceCondition = "san_pham.price >= 250000 AND san_pham.price <= 500000";
+  } else if (price === 'greaterThan500k') {
+    priceCondition = "san_pham.price > 500000";
+  }
+  
+  if (priceCondition) {
+    query += ` AND (${priceCondition})`;
+  }
+}
+
+if (orderBy !== 'default' && orderBy) {
+  let orderByCondition = '';
+  if (orderBy === 'bestselling') {
+    orderByCondition = 'san_pham.sold_quantity DESC';
+  } else if (orderBy === 'priceLowToHigh') {
+    orderByCondition = 'san_pham.price ASC';
+  } else if (orderBy === 'priceHighToLow') {
+    orderByCondition = 'san_pham.price DESC';
+  } else if (orderBy === 'newest') {
+    orderByCondition = 'san_pham.created_date DESC';
+  }
+  query += ` ORDER BY ${orderByCondition}`;
+}
+
+query += ` LIMIT ${pageSize} OFFSET ${offset}`;
+
+    let totalQuery = `
+      SELECT COUNT(*) AS total
+      FROM san_pham join loai_sp on loai_sp.category_id=san_pham.category_id
+      WHERE san_pham.gender = ${gender}`;
+
+    const array = await pool.execute(query);
+    const total = await pool.execute(totalQuery);
+
+    for (const obj of array[0]) {
+      const arrayColor = await pool.execute(`
+        SELECT DISTINCT color 
+        FROM chi_tiet_sp 
+        WHERE product_id = ${obj.product_id}
+      `);
+      const arrayImage = await pool.execute(`
+        SELECT DISTINCT image_id, color, image_link 
+        FROM hinh_anh 
+        WHERE hinh_anh.is_represent = 1 
+        AND product_id = ${obj.product_id}
+      `);
+      const colors = arrayColor[0].map((item) => item.color);
+      const images = arrayImage[0].map((item) => item);
+      obj.color = colors;
+      obj.image = images;
+    }
+
+
+      return res.status(200).json({
+        data: array[0],
+        totalCount: total[0][0].total,
+      });
+  }catch(e){
+    return res.status(400).json({
+      data:`Có lỗi ${e}`
+    })
+  }
 };
+
 
 let getCategory = async (req, res) => {
   const array = await pool.execute(`SELECT DISTINCT loai_sp.category_id,loai_sp.category_name from loai_sp join san_pham on san_pham.category_id=loai_sp.category_id WHERE san_pham.gender = ${req.query.gender}`);
@@ -81,6 +172,7 @@ let getRate = async (req, res) => {
 };
 
 let getDetailPage = async (req, res) => {
+try{
   const array = await pool.execute(`SELECT DISTINCT san_pham.product_id,san_pham.product_name,san_pham.sold_quantity,price,product_description from san_pham join chi_tiet_sp on san_pham.product_id=chi_tiet_sp.product_id join danh_gia on danh_gia.product_id=san_pham.product_id WHERE san_pham.product_id = ${req.query.productid}`);
   const arraySLRate=await pool.execute(`SELECT COUNT(rate_id) as so_luong_rate from danh_gia where product_id=${req.query.productid}`);
   const sumRate=await pool.execute(`SELECT SUM(rate_start) as tong_rate from danh_gia where product_id=${req.query.productid}`);
@@ -89,12 +181,13 @@ let getDetailPage = async (req, res) => {
   const arrayColor=await pool.execute(`select DISTINCT color from chi_tiet_sp where product_id=${req.query.productid}`)
   const arraySize=await pool.execute(`select DISTINCT size from chi_tiet_sp where product_id=${req.query.productid}`)
 
-  const size_color =arraySizeColor[0].map((item) => item);
+  const size_color = arraySizeColor[0].map((item) => item);
   const Images=arrayImage[0].map((item) => item);
   const Colors=arrayColor[0].map((item) => item);
   const Sizes=arraySize[0].map((item) => item);
+  console.log("Bug: ",size_color);
 
-  array[0][0].size_color=size_color
+  array[0][0].size_color="adu";
   array[0][0].image=Images;
   array[0][0].total_rate=arraySLRate[0][0].so_luong_rate;
   array[0][0].rate=sumRate[0][0].tong_rate;
@@ -105,6 +198,10 @@ let getDetailPage = async (req, res) => {
   return res.status(200).json({
     data: array[0],
   });
+}catch(e){
+  console.log(e);
+}
+
 };
 
 let getColor = async(req,res)=>{
