@@ -3,7 +3,7 @@ class ProductController {
 
     static async getProducts(req, res) {
       try {
-        const products = await ProductModel.getProducts(req.query.pageSize,req.query.page,req.query.gender,req.query.category,req.query.price,req.query.color,req.query.style,req.query.material,req.query.orderby);
+        const products = await ProductModel.getProducts(req.query.pageSize,req.query.page,req.query.gender,req.query.category,req.query.price,req.query.color,req.query.style,req.query.material,req.query.orderby,req.query.search);
         return res.status(200).json(products);
       } catch (error) {
         console.error(error);
@@ -55,6 +55,75 @@ class ProductController {
     static async getMaterials(req, res) {
       try {
         const colors = await ProductModel.getMaterials(req.query.gender);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getUpdateProduct(req, res) {
+      try {
+        const colors = await ProductModel.getUpdateProduct(req.query.productid);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getFavorite(req, res) {
+      try {
+        const colors = await ProductModel.getFavorite(req.query.productid,req.query.userid);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getReview(req, res) {
+      try {
+        const colors = await ProductModel.getReview(req.query.productid,req.query.userid);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getComment(req, res) {
+      try {
+        const colors = await ProductModel.getComment(req.query.productid);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async postReview(req, res) {
+      try {
+        const colors = await ProductModel.postReview(req.body.productid,req.body.userid,req.body.comment,req.body.star);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async postProductUpdate(req, res) {
+      let productName=req.body.productName;
+      let price=req.body.price;
+      let description=req.body.description;
+      let gender=req.body.gender_id;
+      let category=req.body.category_id;
+      let material=req.body.material_id;
+      let styled=req.body.style_id;
+      let is_active=req.body.is_active;
+      let productid=req.body.idproduct;
+      try {
+        const colors = await ProductModel.postProductUpdate(productName,price,description,gender,category,material,styled,is_active,productid);
         return res.status(200).json(colors);
       } catch (error) {
         console.error(error);
@@ -144,6 +213,28 @@ class ProductController {
         return res.status(500).json({ error: 'Lỗi server' });
       }
     }
+
+    static async postRemoveFavorite(req, res) {
+      try { 
+        const products = await ProductModel.postRemoveFavorite(req.body.idProduct,req.body.user_id);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async postAddFavorite(req, res) {
+      try { 
+        const products = await ProductModel.postAddFavorite(req.body.idProduct,req.body.user_id);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+
 
     static async getAllCategory(req, res) {
       try { 

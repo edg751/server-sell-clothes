@@ -1,6 +1,6 @@
 import pool from "../configs/connectDB";
 class ProductModel {
-    static async getProducts(pageSize,page,gender,category,price,color,style,material,orderby) {
+    static async getProducts(pageSize,page,gender,category,price,color,style,material,orderby,search) {
       try {
         let query = `SELECT DISTINCT san_pham.id_product, san_pham.product_name, san_pham.price FROM san_pham JOIN chi_tiet_sp ON san_pham.id_product = chi_tiet_sp.id_product 
         JOIN ctsp_size ON ctsp_size.id_product = chi_tiet_sp.id_product join loai_sp on loai_sp.category_id=san_pham.category_id join mau on mau.color_id=chi_tiet_sp.color_id 
@@ -15,6 +15,10 @@ class ProductModel {
           const categoryArray = Array.isArray(category) ? category : [category];
           const categoryCondition = categoryArray.map(category => `loai_sp.category_name = '${category}'`).join(' OR ');
           query += ` AND (${categoryCondition})`;
+        }
+
+        if(search){
+          query += ` AND san_pham.product_name LIKE "%${search}%"`;
         }
         
         if (price) {
@@ -133,6 +137,31 @@ class ProductModel {
           query+=`WHERE san_pham.gioi_tinh=${gender} OR san_pham.gioi_tinh=2`
         }
         const [rows, fields] = await pool.execute(query);
+        // `SELECT DISTINCT loai_sp.category_id,category_name FROM loai_sp join san_pham on loai_sp.category_id=san_pham.category_id WHERE san_pham.gioi_tinh=${gender} OR san_pham.gioi_tinh=2`
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách danh mục');
+      }
+    }
+
+    static async getUpdateProduct(idproduct) {
+      try {
+        let query=`SELECT * from san_pham join san_pham_phong_cach on san_pham_phong_cach.id_product=san_pham.id_product JOIN phong_cach on phong_cach.style_id=san_pham_phong_cach.style_id WHERE san_pham.id_product=${idproduct}`
+        const [rows, fields] = await pool.execute(query);
+        // `SELECT DISTINCT loai_sp.category_id,category_name FROM loai_sp join san_pham on loai_sp.category_id=san_pham.category_id WHERE san_pham.gioi_tinh=${gender} OR san_pham.gioi_tinh=2`
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách danh mục');
+      }
+    }
+
+    static async postProductUpdate(productName,price,description,gender,category,material,styled,is_active,productid) {
+      try {
+        let query=`UPDATE san_pham SET product_name = '${productName}', price = '${price}', product_description = '${description}', gioi_tinh = '${gender}', is_active = '${is_active}',category_id = '${category}', material_id = '${material}' WHERE san_pham.id_product = ${[productid]}`
+        const [rows, fields] = await pool.execute(query);
+        await pool.execute(`UPDATE san_pham_phong_cach SET style_id = '${styled}' WHERE san_pham_phong_cach.id_product = ${productid}`)
         // `SELECT DISTINCT loai_sp.category_id,category_name FROM loai_sp join san_pham on loai_sp.category_id=san_pham.category_id WHERE san_pham.gioi_tinh=${gender} OR san_pham.gioi_tinh=2`
         return rows;
       } catch (error) {
@@ -381,6 +410,45 @@ class ProductModel {
         throw new Error('Lỗi khi lấy danh sách màu');
       }
     }
+
+    static async postReview(productid,userid,comment,star) {
+      try {
+        const currentDate = new Date().toISOString().split("T")[0];
+
+        const [don_hang, fields]= await pool.execute(`SELECT don_hang.order_id,chi_tiet_don_hang.size_id,chi_tiet_don_hang.id_product,chi_tiet_don_hang.color_id 
+        FROM khach_hang join don_hang on khach_hang.user_id=don_hang.user_id join chi_tiet_don_hang on chi_tiet_don_hang.order_id=don_hang.order_id 
+        WHERE khach_hang.user_id=${userid} AND chi_tiet_don_hang.id_product=${productid} LIMIT 1`)
+        
+        await pool.execute(`INSERT INTO chi_tiet_bl (comments, score_rating, date_created, order_id, size_id, id_product, color_id) VALUES ('${comment}', '${star}', '${currentDate}', '${don_hang[0].order_id}', '${don_hang[0].size_id}', '${don_hang[0].id_product}', '${don_hang[0].color_id}')`)
+        
+        const [san_pham,fields2]=await pool.execute(`SELECT * FROM san_pham where san_pham.id_product=${productid}`)
+        let count=san_pham[0].count_rating+1;
+        let stars=((san_pham[0].rating*san_pham[0].count_rating+star)/(san_pham[0].count_rating));
+        console.log("Đếm",count);
+        console.log("Sao",stars);
+        if(san_pham[0].count_rating==0){
+        await pool.execute(`UPDATE san_pham SET rating = '${star}', count_rating = '1' WHERE san_pham.id_product = ${productid}`)
+        }else{
+        await pool.execute(`UPDATE san_pham SET rating = '${stars}', count_rating = '${count}' WHERE san_pham.id_product = ${productid}`)
+        }
+
+        
+        return don_hang;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getComment(idproduct) {
+      try {
+        const [rows, fields] = await pool.execute(`SELECT khach_hang.full_name,chi_tiet_bl.comments,chi_tiet_bl.score_rating FROm khach_hang join don_hang on don_hang.user_id=khach_hang.user_id join chi_tiet_don_hang on chi_tiet_don_hang.order_id=don_hang.order_id join chi_tiet_bl on chi_tiet_bl.id_product=chi_tiet_don_hang.id_product AND chi_tiet_bl.order_id=chi_tiet_don_hang.order_id WHERE chi_tiet_don_hang.id_product=${idproduct}`);
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách sản phẩm');
+      }
+    }
 // SIZE
     static async getSize() {
       try {
@@ -443,6 +511,52 @@ class ProductModel {
       } catch (error) {
         console.error(error);
         throw new Error('Lỗi khi lấy danh sách sản phẩm');
+      }
+    }
+
+    static async getFavorite(productid,userid) {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT * from ds_yeu_thich WHERE user_id=${productid} AND id_product=${userid}`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getReview(productid,userid) {
+      console.log(productid)
+      console.log(userid)
+
+      try {
+        const [rows, fields]= await pool.execute(`SELECT DISTINCT khach_hang.user_id,chi_tiet_don_hang.id_product FROm khach_hang join don_hang on khach_hang.user_id=don_hang.user_id 
+        join thong_tin_giao_hang on thong_tin_giao_hang.delivery_id=don_hang.delivery_id join chi_tiet_don_hang on chi_tiet_don_hang.order_id=don_hang.order_id WHERE khach_hang.user_id=${userid} 
+        AND chi_tiet_don_hang.id_product=${productid} AND thong_tin_giao_hang.delevery_status=2`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async postRemoveFavorite(productid,userid) {
+      try {
+        const [rows, fields]= await pool.execute(`DELETE FROM ds_yeu_thich WHERE user_id=${userid} AND id_product=${productid}`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+
+    static async postAddFavorite(productid,userid) {
+      try {
+        const [rows, fields]= await pool.execute(`INSERT INTO ds_yeu_thich (id_product,user_id) VALUES ('${productid}', '${userid}')`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
       }
     }
   }

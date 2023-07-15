@@ -24,12 +24,30 @@ const initAPIRoute = (app) => {
 
   router.get('/api/detailt/product', ProductController.getProductDetail);
 
+  router.get('/api/getFavorite', ProductController.getFavorite);
+  router.post('/api/removeFavorite', ProductController.postRemoveFavorite);
+  router.post('/api/addFavorite', ProductController.postAddFavorite);
+
+  router.get('/api/getReview', ProductController.getReview);
+  router.post('/api/postReview', ProductController.postReview);
+  router.get('/api/getComment', ProductController.getComment);
 
 
 
   router.post('/api/auth/register',UserController.userRegister);
+  router.get('/api/auth/verify/:code',UserController.verifyEmail);
+  router.post('/api/auth/reset',UserController.resetPassLink);
+  router.post('/api/auth/resetpassword',UserController.resetPass);
+
+
+  router.post('/api/auth/admin_login',UserController.loginAdministrator);
+
+
+
   router.post('/api/auth/login',UserController.userLogin);
   router.get('/api/user/address',UserController.getAddress);
+  router.get('/api/user/favorite',UserController.getFavoriteList);
+
 
 
 
@@ -43,6 +61,9 @@ const initAPIRoute = (app) => {
   router.get('/api/admin/order_detail',orderController.order_detail);
   router.get('/api/admin/order_info',orderController.order_info);
   
+  router.get('/api/admin/delivery_list',orderController.delivery_list);
+  router.get('/api/admin/delivery_status',orderController.delivery_status);
+  router.post('/api/admin/delivery_update',orderController.postDeliveryUpdate);
 
   router.post('/api/admin/add_product',ProductController.postAddProduct);
   router.post('/api/admin/update_quantity_product', ProductController.postUpdateQuantityProduct);
@@ -71,6 +92,11 @@ const initAPIRoute = (app) => {
   router.get('/api/admin/products', ProductController.getProductListAdmin);
   router.get('/api/admin/product_detail', ProductController.getProductDetailAdmin);
   router.get('/api/admin/product_link_image',ProductController.getListLinkImage);
+
+  router.get('/api/admin/detail_update', ProductController.getUpdateProduct);
+  router.post('/api/admin/product_update', ProductController.postProductUpdate);
+
+
 
 
 

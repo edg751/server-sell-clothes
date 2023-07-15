@@ -32,6 +32,37 @@ class OrderController {
         }
       }
 
+      static async delivery_list(req, res) {
+        try {
+          const list = await OderModel.delivery_list();
+          return res.status(200).json(list);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async delivery_status(req, res) {
+        try {
+          const list = await OderModel.delivery_status(req.query.delivery_id);
+          return res.status(200).json(list);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async postDeliveryUpdate(req, res) {
+        try {
+          const list = 1;
+          await OderModel.postDeliveryUpdate(req.body.delivery_id,req.body.status);
+          return res.status(200).json(list);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
       static async order_detail(req, res) {
         try {
           const list = await OderModel.order_detail(req.query.orderid);

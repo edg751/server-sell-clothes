@@ -27,7 +27,7 @@ class UserController {
       
           return res.status(200).json(result);
         } catch (error) {
-          return res.status(401).json({ message: error.message });
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
         }
       };
 
@@ -40,5 +40,63 @@ class UserController {
           return res.status(500).json({ error: 'Lỗi server' });
         }
       }
+
+      static async verifyEmail(req, res) {
+        console.log(req.params.code)
+        try { 
+          const products = await UserModel.verifyEmail(req.params.code);
+          return res.redirect('http://localhost:3000/');
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async resetPassLink(req, res) {
+        try { 
+          const products = await UserModel.resetPassLink(req.body.email.email);
+          return res.status(200).json({success:'Đã gửi email'});
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      
+      static async resetPass(req, res) {
+        try { 
+          const products = await UserModel.resetPass(req.body.token,req.body.password);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+
+      static async getFavoriteList(req, res) {
+        try { 
+          const products = await UserModel.getFavoriteList(req.query.user_id);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+
+      static async loginAdministrator(req, res) {
+        try { 
+          const products = await UserModel.loginAdministrator(req.body.email,req.body.password);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+
 }
 module.exports = UserController;
