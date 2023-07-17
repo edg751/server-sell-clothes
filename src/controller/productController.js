@@ -82,6 +82,37 @@ class ProductController {
       }
     }
 
+    static async getCorlorListOnItem(req, res) {
+      try {
+        const colors = await ProductModel.getCorlorListOnItem(req.query.productid);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getSizeListOnItem(req, res) {
+      try {
+        const colors = await ProductModel.getSizeListOnItem(req.query.productid);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getQuantityItem(req, res) {
+      try {
+        const colors = await ProductModel.getQuantityItem(req.query.productid,req.query.color_id,req.query.size_id);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+
     static async getReview(req, res) {
       try {
         const colors = await ProductModel.getReview(req.query.productid,req.query.userid);

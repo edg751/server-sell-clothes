@@ -2,7 +2,7 @@ import express from "express";
 import ProductController from "../controller/productController";
 import UserController from "../controller/userController";
 import orderController from "../controller/oderController";
-
+import VnpayController from "../controller/vnpayController";
 
 
 const multer = require('multer');
@@ -15,6 +15,18 @@ const initAPIRoute = (app) => {
   // router.get("/api/rate",APIController.getRate)
 
   // TEST MVC
+  router.get("/create_payment_url",VnpayController.createPayment);  
+  router.get("/vnpay_return",VnpayController.vnpayReturn);
+
+  router.get('/api/product/color_item', ProductController.getCorlorListOnItem);
+  router.get('/api/product/size_item', ProductController.getSizeListOnItem);
+  router.get('/api/product/quantity', ProductController.getQuantityItem);
+
+
+
+  
+  
+
   router.get('/api/list/products', ProductController.getProducts);
   router.get('/api/list/categories', ProductController.getCategories);
   router.get('/api/list/colors', ProductController.getColors);
@@ -50,8 +62,13 @@ const initAPIRoute = (app) => {
 
 
 
+  router.get('/api/feedback',orderController.feedBack);
+  router.get('/api/feedback_address',orderController.feedBackAddress);
+
 
   router.post('/api/order',orderController.order);
+  router.post('/api/order_vnpay',orderController.order_VNPAY);
+
   router.post('/api/admin/update_order',orderController.update_order);
   router.post('/api/admin/update_order_2',orderController.update_order_2);
 

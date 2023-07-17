@@ -5,7 +5,7 @@ class ProductModel {
         let query = `SELECT DISTINCT san_pham.id_product, san_pham.product_name, san_pham.price FROM san_pham JOIN chi_tiet_sp ON san_pham.id_product = chi_tiet_sp.id_product 
         JOIN ctsp_size ON ctsp_size.id_product = chi_tiet_sp.id_product join loai_sp on loai_sp.category_id=san_pham.category_id join mau on mau.color_id=chi_tiet_sp.color_id 
         join san_pham_phong_cach on san_pham_phong_cach.id_product=san_pham.id_product join phong_cach on phong_cach.style_id=san_pham_phong_cach.style_id join vat_lieu on vat_lieu.material_id=san_pham.material_id
-        WHERE ctsp_size.qualtity > 0`;
+        WHERE ctsp_size.qualtity > 0 AND san_pham.is_active=1`;
 
         if (gender) {
           query += ` AND (san_pham.gioi_tinh = ${gender} OR san_pham.gioi_tinh = 2)`;
@@ -319,6 +319,41 @@ class ProductModel {
       }
     }
 
+    static async getCorlorListOnItem(productid) {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT DISTINCT mau.color_id,mau.color_name,mau.color_code FROM san_pham JOIN chi_tiet_sp on chi_tiet_sp.id_product=san_pham.id_product JOIN mau on mau.color_id=chi_tiet_sp.color_id join ctsp_size on ctsp_size.id_product=chi_tiet_sp.id_product AND ctsp_size.color_id=chi_tiet_sp.color_id WHERE san_pham.id_product=${productid} AND ctsp_size.qualtity > 0`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getSizeListOnItem(productid) {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT DISTINCT kich_thuoc.size_id,kich_thuoc.size_name FROM ctsp_size join kich_thuoc on ctsp_size.size_id=kich_thuoc.size_id WHERE ctsp_size.qualtity>0 AND ctsp_size.id_product=${productid}`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getQuantityItem(productid,colorid,sizeid) {
+      console.log("color:",colorid,sizeid);
+      try {
+        let query=`SELECT sum(ctsp_size.qualtity) AS 'quantity' FROM ctsp_size join chi_tiet_sp on ctsp_size.id_product=chi_tiet_sp.id_product AND ctsp_size.color_id=chi_tiet_sp.color_id join mau on mau.color_id=chi_tiet_sp.color_id WHERE ctsp_size.id_product=${productid}`
+        if(colorid && sizeid){
+          query+=` AND mau.color_id='${colorid}' AND ctsp_size.size_id=${sizeid}`
+        }
+        const [rows, fields]= await pool.execute(query)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
     static async postUpdateMaterial(materialName,materialId) {
       try {
         const [rows, fields]= await pool.execute(`UPDATE vat_lieu SET material_name = '${materialName}' WHERE vat_lieu.material_id = ${materialId}`)    
@@ -421,9 +456,9 @@ class ProductModel {
         
         await pool.execute(`INSERT INTO chi_tiet_bl (comments, score_rating, date_created, order_id, size_id, id_product, color_id) VALUES ('${comment}', '${star}', '${currentDate}', '${don_hang[0].order_id}', '${don_hang[0].size_id}', '${don_hang[0].id_product}', '${don_hang[0].color_id}')`)
         
-        const [san_pham,fields2]=await pool.execute(`SELECT * FROM san_pham where san_pham.id_product=${productid}`)
+        const [san_pham,fields2]=await pool.execute(`SELECT * FROM san_pham where san_pham.id_product=${productid}`);
         let count=san_pham[0].count_rating+1;
-        let stars=((san_pham[0].rating*san_pham[0].count_rating+star)/(san_pham[0].count_rating));
+        let stars=((san_pham[0].rating*san_pham[0].count_rating+star)/count);
         console.log("Đếm",count);
         console.log("Sao",stars);
         if(san_pham[0].count_rating==0){
