@@ -60,6 +60,68 @@ class UserModel {
         }
       }
 
+      static async getInfomation(user_id) {
+        try {
+          const [rows, fields]= await pool.execute(`SELECT khach_hang.user_id,khach_hang.email,khach_hang.full_name FROM khach_hang WHERE khach_hang.user_id=${user_id}`)    
+          return rows;
+        } catch (error) {
+          console.error(error);
+          throw new Error('Lỗi khi lấy danh sách màu');
+        }
+      }
+
+      static async postInfomation(user_id,name) {
+        try {
+          const [rows, fields]= await pool.execute(`UPDATE khach_hang SET full_name = '${name}' WHERE khach_hang.user_id = ${user_id}`)    
+          return 1;
+        } catch (error) {
+          console.error(error);
+          throw new Error('Lỗi khi lấy danh sách màu');
+        }
+      }
+
+      static async postChangePassword(user_id,old_pass,new_pass) {
+        try {
+          const [rows, fields]= await pool.execute(`UPDATE khach_hang SET khach_hang.password = '${new_pass}' WHERE khach_hang.user_id='${user_id}' AND khach_hang.password='${old_pass}';
+          `)    
+          return 1;
+        } catch (error) {
+          console.error(error);
+          throw new Error('Lỗi khi lấy danh sách màu');
+        }
+      }
+
+      static async postAddAddress(city,district,ward,address,name,phone,userId) {
+        try {
+          const [rows, fields]= await pool.execute(`INSERT INTO thong_tin_lien_lac (name_info, city, district, ward, address, phone_number, user_id) VALUES ('${name}', '${city}', '${district}', '${ward}', '${address}', '${phone}', '${userId}')`)    
+          return 1;
+        } catch (error) {
+          console.error(error);
+          throw new Error('Lỗi khi lấy danh sách màu');
+        }
+      }
+
+      static async postDeleteAddress(address_id) {
+        try {
+          const [rows, fields]= await pool.execute(`DELETE FROM thong_tin_lien_lac WHERE thong_tin_lien_lac.contact_info_id = ${address_id}`)    
+          return 1;
+        } catch (error) {
+          console.error(error);
+          throw new Error('Lỗi khi lấy danh sách màu');
+        }
+      }
+
+      static async getListOrder(user_id) {
+        try {
+          const [rows, fields]= await pool.execute(`SELECT don_hang.order_id,thong_tin_giao_hang.name,thong_tin_giao_hang.address,thong_tin_giao_hang.phone_number,don_hang.order_date,order_status,don_hang.payment_status,don_hang.payment_method_id,don_hang.total_price,thong_tin_giao_hang.delevery_status FROM thong_tin_giao_hang join don_hang on thong_tin_giao_hang.delivery_id=don_hang.delivery_id WHERE don_hang.user_id=${user_id}`)    
+          return rows;
+        } catch (error) {
+          console.error(error);
+          throw new Error('Lỗi khi lấy danh sách màu');
+        }
+      }
+
+
       static async userLogin(email, password) {
         try {
           const array = await pool.execute(

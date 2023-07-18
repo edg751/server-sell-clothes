@@ -59,6 +59,19 @@ const initAPIRoute = (app) => {
   router.post('/api/auth/login',UserController.userLogin);
   router.get('/api/user/address',UserController.getAddress);
   router.get('/api/user/favorite',UserController.getFavoriteList);
+  router.get('/api/user_infomation',UserController.getInfomation);
+  
+  router.get('/api/list_order',UserController.getListOrder);
+
+  router.post('/api/user_infomation',UserController.postInfomation);
+  router.post('/api/user_password',UserController.postChangePassword);
+  router.post('/api/add_address',UserController.postAddAddress);
+  router.post('/api/delete_address',UserController.postDeleteAddress);
+
+
+
+
+
 
 
 
@@ -133,13 +146,6 @@ const initAPIRoute = (app) => {
 
   // app.post('/upload', upload.single('image'),APIController.postUploadImage );
 
-  app.get('/add-to-cart', (req, res) => {
-    // Lấy thông tin sản phẩm được thêm vào giỏ hàng
-    const product = { id: 1, name: 'Product 1', price: 10 };
-  
-    // Gửi thông tin sản phẩm dưới dạng JSON
-    res.json({ product });
-  });
   
 
 

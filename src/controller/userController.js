@@ -41,6 +41,36 @@ class UserController {
         }
       }
 
+      static async getInfomation(req, res) {
+        try { 
+          const products = await UserModel.getInfomation(req.query.user_id);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async postInfomation(req, res) {
+        try { 
+          const products = await UserModel.postInfomation(req.body.user_id,req.body.name);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async postChangePassword(req, res) {
+        try { 
+          const products = await UserModel.postChangePassword(req.body.user_id,req.body.old_pass,req.body.new_pass);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
       static async verifyEmail(req, res) {
         console.log(req.params.code)
         try { 
@@ -74,6 +104,41 @@ class UserController {
           return res.status(500).json({ error: 'Lỗi server' });
         }
       }
+
+      static async postAddAddress(req, res) {
+        try { 
+          const products = await UserModel.postAddAddress(req.body.city,req.body.district,req.body.ward,req.body.address,req.body.name,req.body.phone,req.body.userId);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async getListOrder(req, res) {
+        try { 
+          const products = await UserModel.getListOrder(req.query.user_id);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async postDeleteAddress(req, res) {
+        try { 
+          const products = await UserModel.postDeleteAddress(req.body.address_id);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      
 
 
       static async getFavoriteList(req, res) {
