@@ -42,7 +42,7 @@ class OrderController {
 
     static async order_list_wait(req, res) {
         try {
-          const list = await OderModel.order_list_wait(req.query.filter_order);
+          const list = await OderModel.order_list_wait(req.query.filter_order,req.query.filter_order2);
           return res.status(200).json(list);
         } catch (error) {
           console.error(error);
@@ -52,7 +52,7 @@ class OrderController {
 
       static async delivery_list(req, res) {
         try {
-          const list = await OderModel.delivery_list();
+          const list = await OderModel.delivery_list(req.query.filter);
           return res.status(200).json(list);
         } catch (error) {
           console.error(error);

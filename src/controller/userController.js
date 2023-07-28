@@ -86,7 +86,7 @@ class UserController {
       static async resetPassLink(req, res) {
         try { 
           const products = await UserModel.resetPassLink(req.body.email.email);
-          return res.status(200).json({success:'Đã gửi email'});
+          return res.status(200).json(products);
         } catch (error) {
           console.error(error);
           return res.status(500).json({ error: 'Lỗi server' });
@@ -138,8 +138,82 @@ class UserController {
         }
       }
 
-      
+      static async getNotifyUser(req, res) {
+        try { 
+          const products = await UserModel.getNotifyUser(req.query.user_id);
+          return res.status(200).json(products);
 
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async getQuantityNotifyUser(req, res) {
+        try { 
+          const products = await UserModel.getQuantityNotifyUser(req.query.user_id);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async postNotifyRead(req, res) {
+        try { 
+          const products = await UserModel.postNotifyRead(req.body.user_id);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async getNotificationList(req, res) {
+        try { 
+          const products = await UserModel.getNotificationList();
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async getNotificationDetail(req, res) {
+        try { 
+          const products = await UserModel.getNotificationDetail(req.query.notification_id);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async postAddNotification(req, res) {
+        try { 
+          const products = await UserModel.postAddNotification(req.body.content,req.body.employee_id);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
+
+      static async postUpdateNotification(req, res) {
+        try { 
+          const products = await UserModel.postUpdateNotification(req.body.content,req.body.is_active,req.body.notification_id);
+          return res.status(200).json(products);
+
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Lỗi server' });
+        }
+      }
 
       static async getFavoriteList(req, res) {
         try { 
@@ -161,6 +235,97 @@ class UserController {
           return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
         }
       }
+
+      static async loginSeniorAdministrator(req, res) {
+        try { 
+          const products = await UserModel.loginSeniorAdministrator(req.body.email,req.body.password);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async getEmployeeList(req, res) {
+        try { 
+          const products = await UserModel.getEmployeeList();
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async addEmployee(req, res) {
+        try { 
+          const products = await UserModel.addEmployee(req.body.fullName,req.body.address,req.body.phone,req.body.email);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async getEmployeeDetail(req, res) {
+        try { 
+          const products = await UserModel.getEmployeeDetail(req.query.id);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async updateEmployee(req, res) {
+        try { 
+          const products = await UserModel.updateEmployee(req.body.id,req.body.fullName,req.body.address,req.body.phone,req.body.email,req.body.status);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async resetPassEmployee(req, res) {
+        try { 
+          const products = await UserModel.resetPassEmployee(req.query.id,req.query.email);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async customerList(req, res) {
+        try { 
+          const products = await UserModel.customerList();
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async customerDisable(req, res) {
+        try { 
+          const products = await UserModel.customerDisable(req.query.id,req.query.status);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
+      static async getStatistical(req, res) {
+        try { 
+          const products = await UserModel.getStatistical(req.query.month,req.query.year);
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ message: "Tài khoản, mật khẩu sai hoặc chưa kích hoạt tài khoản" });
+        }
+      }
+
 
 
 }

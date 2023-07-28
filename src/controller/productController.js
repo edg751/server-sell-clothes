@@ -1,4 +1,12 @@
 import ProductModel from "../model/productModel";
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+
+cloudinary.config({ 
+  cloud_name: 'dsopmggtb', 
+  api_key: '128841183738398', 
+  api_secret: 'iOR18H_0gFw-iIdOYZLJpzhkFuw' 
+});
 class ProductController {
 
     static async getProducts(req, res) {
@@ -179,6 +187,32 @@ class ProductController {
       } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+
+    static uploadImage = async (file) => {
+      try {
+        const result = await cloudinary.uploader.upload(file.path);
+        // Lấy đường dẫn
+        const imageUrl = result.secure_url;
+        return imageUrl;
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        throw error;
+      }
+    };
+  
+    static async postUploadImage(req, res) {
+      try {
+        if (!req.file) {
+          throw new Error('No file uploaded');
+        }
+        const imageUrl = await ProductController.uploadImage(req.file);
+        res.send({ imageUrl });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: error.message });
       }
     }
 
@@ -397,6 +431,16 @@ class ProductController {
       }
     }
 
+    static async getStatistical(req, res) {
+      try { 
+        const products = await ProductModel.getStatistical();
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
     static async getDetailColor(req, res) {
       try { 
         const products = await ProductModel.getDetailColor(req.query.color_id);
@@ -417,7 +461,90 @@ class ProductController {
       }
     }
 
+    static async postAddProductPromotion(req, res) {
 
+      try { 
+        const products = await ProductModel.postAddProductPromotion(req.body.id_PM,req.body.productList);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getDetailPromotion(req, res) {
+      try { 
+        const products = await ProductModel.getDetailPromotion(req.query.idPM);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async postUpdateDetailPromotion(req, res) {
+      try { 
+        const products = await ProductModel.postUpdateDetailPromotion(req.body.idPM,req.body.todate,req.body.fromdate,req.body.description,req.body.percent,req.body.status);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+
+    
+    static async postRemoveProductPromotion(req, res) {
+
+      try { 
+        const products = await ProductModel.postRemoveProductPromotion(req.body.id_PM,req.body.id_product);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+
+    static async getListProduct(req, res) {
+      try { 
+        const products = await ProductModel.getListProduct(req.query.idPM);
+        return res.status(200).json(products);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    
+    static async getPromotionList(req, res) {
+      try {
+        const colors = await ProductModel.getPromotionList();
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+
+    static async getPromotionListPromotion(req, res) {
+      try {
+        const colors = await ProductModel.getPromotionListPromotion(req.query.promotion_id);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
+    static async postAddPromotion(req, res) {
+      try {
+        const colors = await ProductModel.postAddPromotion(req.body.promotionDescription,req.body.percent,req.body.todate,req.body.fromdate,);
+        return res.status(200).json(colors);
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Lỗi server' });
+      }
+    }
 
   }
   module.exports = ProductController;

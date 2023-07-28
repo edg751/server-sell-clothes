@@ -2,10 +2,7 @@ import pool from "../configs/connectDB";
 class ProductModel {
     static async getProducts(pageSize,page,gender,category,price,color,style,material,orderby,search) {
       try {
-        let query = `SELECT DISTINCT san_pham.id_product, san_pham.product_name, san_pham.price FROM san_pham JOIN chi_tiet_sp ON san_pham.id_product = chi_tiet_sp.id_product 
-        JOIN ctsp_size ON ctsp_size.id_product = chi_tiet_sp.id_product join loai_sp on loai_sp.category_id=san_pham.category_id join mau on mau.color_id=chi_tiet_sp.color_id 
-        join san_pham_phong_cach on san_pham_phong_cach.id_product=san_pham.id_product join phong_cach on phong_cach.style_id=san_pham_phong_cach.style_id join vat_lieu on vat_lieu.material_id=san_pham.material_id
-        WHERE ctsp_size.qualtity > 0 AND san_pham.is_active=1`;
+        let query = `SELECT DISTINCT san_pham.id_product, san_pham.product_name, san_pham.price,ctsp_km.promotion_price,khuyen_mai.from_date,khuyen_mai.to_date,khuyen_mai.is_active FROM san_pham JOIN chi_tiet_sp ON san_pham.id_product = chi_tiet_sp.id_product JOIN ctsp_size ON ctsp_size.id_product = chi_tiet_sp.id_product join loai_sp on loai_sp.category_id=san_pham.category_id join mau on mau.color_id=chi_tiet_sp.color_id join san_pham_phong_cach on san_pham_phong_cach.id_product=san_pham.id_product join phong_cach on phong_cach.style_id=san_pham_phong_cach.style_id join vat_lieu on vat_lieu.material_id=san_pham.material_id LEFT JOIN ctsp_km on ctsp_km.id_product=san_pham.id_product LEFT join khuyen_mai on ctsp_km.promotion_id=khuyen_mai.promotion_id WHERE ctsp_size.qualtity > 0 AND san_pham.is_active=1 AND khuyen_mai.is_active=1 OR khuyen_mai.is_active is NULL`;
 
         if (gender) {
           query += ` AND (san_pham.gioi_tinh = ${gender} OR san_pham.gioi_tinh = 2)`;
@@ -100,7 +97,7 @@ class ProductModel {
 
     static async getProductDetail(productid,colorid) {
       try {
-        const [rows, fields] = await pool.execute(`SELECT DISTINCT * FROM san_pham WHERE san_pham.id_product=${productid}`);
+        const [rows, fields] = await pool.execute(`SELECT DISTINCT * FROM san_pham LEFT JOIN ctsp_km on ctsp_km.id_product=san_pham.id_product LEFT join khuyen_mai on ctsp_km.promotion_id=khuyen_mai.promotion_id WHERE san_pham.id_product=${productid}`);
 
 
         let image_query=`select DISTINCT pic_id,pic_link,hinh_anh.color_id from hinh_anh join chi_tiet_sp on
@@ -157,6 +154,17 @@ class ProductModel {
       }
     }
 
+    static async getListProduct(idPM) {
+      try {
+        let query=`SELECT DISTINCT san_pham.id_product,san_pham.product_name from san_pham LEFT JOIN ctsp_km ON ctsp_km.id_product = san_pham.id_product left join khuyen_mai on ctsp_km.promotion_id=khuyen_mai.promotion_id WHERE khuyen_mai.is_active=0 OR khuyen_mai.is_active is NULL`;
+        const [rows, fields] = await pool.execute(query);
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách danh mục');
+      }
+    }
+
     static async postProductUpdate(productName,price,description,gender,category,material,styled,is_active,productid) {
       try {
         let query=`UPDATE san_pham SET product_name = '${productName}', price = '${price}', product_description = '${description}', gioi_tinh = '${gender}', is_active = '${is_active}',category_id = '${category}', material_id = '${material}' WHERE san_pham.id_product = ${[productid]}`
@@ -170,6 +178,36 @@ class ProductModel {
       }
     }
 
+    static async postAddProductPromotion(idPM,productList) {
+      try {
+        const [percent,fields0]=await pool.execute(`SELECT * FROM khuyen_mai WHERE promotion_id=${idPM}`);
+
+        productList.map(async(product_id)=>{
+        const [price,fields2]=await pool.execute(`SELECT * FROM san_pham WHERE id_product=${product_id}`);
+
+  
+        console.log("Giá giá cần trừ",(price[0].price*(percent[0].discount_percent/100)))
+        let newPrice=(price[0].price-(price[0].price*(percent[0].discount_percent/100)));
+          console.log("giá mới",newPrice);
+          await pool.execute(`INSERT INTO ctsp_km (promotion_price, promotion_id, id_product) VALUES ('${newPrice}', '${idPM}', '${product_id}')`);
+        })
+        return 1;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách danh mục');
+      }
+    }
+    static async postRemoveProductPromotion(idPM,idProduct) {
+      try {
+        const [result,fields]=await pool.execute(`DELETE FROM ctsp_km WHERE ctsp_km.promotion_id = ${idPM} AND ctsp_km.id_product = ${idProduct}`)
+        return result;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách danh mục');
+      }
+    }
+    
+
     static async getColors(gender) {
       try {
         let query=`SELECT DISTINCT mau.color_id,color_name,color_code FROM mau join chi_tiet_sp on chi_tiet_sp.color_id=mau.color_id join san_pham on san_pham.id_product=chi_tiet_sp.id_product `;
@@ -177,6 +215,36 @@ class ProductModel {
           query+=`WHERE san_pham.gioi_tinh=${gender} OR san_pham.gioi_tinh=2`
         }
         const [rows, fields] = await pool.execute(query);
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getDetailPromotion(idPM) {
+      try {
+        let query=`SELECT * FROM khuyen_mai WHERE khuyen_mai.promotion_id=${idPM}`;
+        const [rows, fields] = await pool.execute(query);
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async postUpdateDetailPromotion(idPM,todate,fromdate,description,percent,status) {
+      try {
+        let query=`UPDATE khuyen_mai SET discount_percent = '${percent}',promotion_description = '${description}', from_date = '${fromdate}', to_date = '${todate}', is_active = '${status}' WHERE khuyen_mai.promotion_id = ${idPM}`;
+        const [rows, fields] = await pool.execute(query);
+        const [listProduct, fields2] = await pool.execute(`SELECT * FROM ctsp_km join san_pham on san_pham.id_product=ctsp_km.id_product WHERE ctsp_km.promotion_id=${idPM}`);
+        console.log(listProduct);
+        listProduct.map( async(product)=>{
+          console.log(product.price)
+          let newPrice=(product.price-(product.price*(percent/100)));
+
+          await pool.execute(`UPDATE ctsp_km SET promotion_price = '${newPrice}' WHERE ctsp_km.promotion_id = ${idPM} AND ctsp_km.id_product = ${product.id_product}`)
+        })
         return rows;
       } catch (error) {
         console.error(error);
@@ -458,13 +526,13 @@ class ProductModel {
         
         const [san_pham,fields2]=await pool.execute(`SELECT * FROM san_pham where san_pham.id_product=${productid}`);
         let count=san_pham[0].count_rating+1;
-        let stars=((san_pham[0].rating*san_pham[0].count_rating+star)/count);
+        let stars=(((san_pham[0].rating*san_pham[0].count_rating)+star)/count);
         console.log("Đếm",count);
         console.log("Sao",stars);
         if(san_pham[0].count_rating==0){
-        await pool.execute(`UPDATE san_pham SET rating = '${star}', count_rating = '1' WHERE san_pham.id_product = ${productid}`)
+        await pool.execute(`UPDATE san_pham SET rating = '${star}', count_rating = '1' WHERE san_pham.id_product = ${productid}`);
         }else{
-        await pool.execute(`UPDATE san_pham SET rating = '${stars}', count_rating = '${count}' WHERE san_pham.id_product = ${productid}`)
+        await pool.execute(`UPDATE san_pham SET rating = '${stars}', count_rating = '${count}' WHERE san_pham.id_product = ${productid}`);
         }
 
         
@@ -529,13 +597,12 @@ class ProductModel {
         
         color_list.map( async (dataColor)=>{
           await pool.execute(`INSERT INTO chi_tiet_sp (id_product, color_id) VALUES ('${productId.insertId}', '${dataColor.color_id}')`)
-
-          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('https://bizweb.dktcdn.net/thumb/large/100/438/408/products/apm3299-xxm-7.jpg?v=1688723498000', '1', '${productId.insertId}', '${dataColor.color_id}')`)
-          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('https://bizweb.dktcdn.net/thumb/large/100/438/408/products/apm3299-xxm-7.jpg?v=1688723498000', '0', '${productId.insertId}', '${dataColor.color_id}')`)
-          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('https://bizweb.dktcdn.net/thumb/large/100/438/408/products/apm3299-xxm-7.jpg?v=1688723498000', '0', '${productId.insertId}', '${dataColor.color_id}')`)
-          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('https://bizweb.dktcdn.net/thumb/large/100/438/408/products/apm3299-xxm-7.jpg?v=1688723498000', '0', '${productId.insertId}', '${dataColor.color_id}')`)
-          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('https://bizweb.dktcdn.net/thumb/large/100/438/408/products/apm3299-xxm-7.jpg?v=1688723498000', '0', '${productId.insertId}', '${dataColor.color_id}')`)
-          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('https://bizweb.dktcdn.net/thumb/large/100/438/408/products/apm3299-xxm-7.jpg?v=1688723498000', '0', '${productId.insertId}', '${dataColor.color_id}')`)
+          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('', '1', '${productId.insertId}', '${dataColor.color_id}')`)
+          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('', '0', '${productId.insertId}', '${dataColor.color_id}')`)
+          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('', '0', '${productId.insertId}', '${dataColor.color_id}')`)
+          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('', '0', '${productId.insertId}', '${dataColor.color_id}')`)
+          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('', '0', '${productId.insertId}', '${dataColor.color_id}')`)
+          await pool.execute(`INSERT INTO hinh_anh (pic_link, is_represent, id_product, color_id) VALUES ('', '0', '${productId.insertId}', '${dataColor.color_id}')`)
 
           size_list.map(async (dataSize)=>{
             await pool.execute(`INSERT INTO ctsp_size (qualtity, size_id, id_product, color_id) VALUES ('0', '${dataSize.size_id}', '${productId.insertId}', '${dataColor.color_id}')`)
@@ -564,9 +631,16 @@ class ProductModel {
       console.log(userid)
 
       try {
-        const [rows, fields]= await pool.execute(`SELECT DISTINCT khach_hang.user_id,chi_tiet_don_hang.id_product FROm khach_hang join don_hang on khach_hang.user_id=don_hang.user_id 
-        join thong_tin_giao_hang on thong_tin_giao_hang.delivery_id=don_hang.delivery_id join chi_tiet_don_hang on chi_tiet_don_hang.order_id=don_hang.order_id WHERE khach_hang.user_id=${userid} 
-        AND chi_tiet_don_hang.id_product=${productid} AND thong_tin_giao_hang.delevery_status=2`)    
+        const [rows, fields]= await pool.execute(`SELECT DISTINCT khach_hang.user_id, chi_tiet_don_hang.id_product 
+        FROM khach_hang 
+        JOIN don_hang ON khach_hang.user_id = don_hang.user_id 
+        JOIN thong_tin_giao_hang ON thong_tin_giao_hang.delivery_id = don_hang.delivery_id 
+        JOIN chi_tiet_don_hang ON chi_tiet_don_hang.order_id = don_hang.order_id 
+        LEFT JOIN chi_tiet_bl ON chi_tiet_bl.id_product = chi_tiet_don_hang.id_product 
+        WHERE khach_hang.user_id = ${userid}
+        AND chi_tiet_don_hang.id_product = ${productid}
+        AND thong_tin_giao_hang.delevery_status = 2 
+        AND chi_tiet_bl.comments IS NULL;`)    
         return rows;
       } catch (error) {
         console.error(error);
@@ -594,5 +668,47 @@ class ProductModel {
         throw new Error('Lỗi khi lấy danh sách màu');
       }
     }
+
+    static async getPromotionList() {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT * froM khuyen_mai`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getStatistical() {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT * froM khuyen_mai`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async getPromotionListPromotion(promotion_id) {
+      try {
+        const [rows, fields]= await pool.execute(`SELECT * from san_pham join ctsp_km on san_pham.id_product=ctsp_km.id_product WHERE ctsp_km.promotion_id=${promotion_id}`)    
+        return rows;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+    static async postAddPromotion(description,percent,todate,fromdate) {
+      try {
+        const [rows, fields]= await pool.execute(`INSERT INTO khuyen_mai (promotion_description, discount_percent, from_date, to_date,is_active) VALUES ('${description}', '${percent}', '${fromdate}', '${todate}',1)`)    
+        return rows.insertId;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Lỗi khi lấy danh sách màu');
+      }
+    }
+
+
   }
   module.exports = ProductModel;

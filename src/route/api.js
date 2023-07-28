@@ -3,9 +3,14 @@ import ProductController from "../controller/productController";
 import UserController from "../controller/userController";
 import orderController from "../controller/oderController";
 import VnpayController from "../controller/vnpayController";
-
-
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({ 
+  cloud_name: 'dsopmggtb', 
+  api_key: '128841183738398', 
+  api_secret: 'iOR18H_0gFw-iIdOYZLJpzhkFuw' 
+});
+
 const upload = multer({ dest: 'uploads/' });
 let router = express.Router(); //Gọi để nó biết đây là router
 
@@ -22,11 +27,6 @@ const initAPIRoute = (app) => {
   router.get('/api/product/size_item', ProductController.getSizeListOnItem);
   router.get('/api/product/quantity', ProductController.getQuantityItem);
 
-
-
-  
-  
-
   router.get('/api/list/products', ProductController.getProducts);
   router.get('/api/list/categories', ProductController.getCategories);
   router.get('/api/list/colors', ProductController.getColors);
@@ -35,6 +35,21 @@ const initAPIRoute = (app) => {
   router.get('/api/list/size', ProductController.getSize);
 
   router.get('/api/detailt/product', ProductController.getProductDetail);
+
+  router.get('/api/notify_user', UserController.getNotifyUser);
+  router.post('/api/notify_read', UserController.postNotifyRead);
+  router.get('/api/quantity_notify_user', UserController.getQuantityNotifyUser);
+
+  router.get('/api/notificationList', UserController.getNotificationList);
+  router.get('/api/notificationDetail', UserController.getNotificationDetail);
+  router.post('/api/updateNotification', UserController.postUpdateNotification);
+
+
+  router.post('/api/addNotification', UserController.postAddNotification);
+
+
+
+
 
   router.get('/api/getFavorite', ProductController.getFavorite);
   router.post('/api/removeFavorite', ProductController.postRemoveFavorite);
@@ -53,6 +68,28 @@ const initAPIRoute = (app) => {
 
 
   router.post('/api/auth/admin_login',UserController.loginAdministrator);
+  router.post('/api/auth/admin_senior_login',UserController.loginSeniorAdministrator);
+
+  router.get('/api/employee_list',UserController.getEmployeeList);
+  router.get('/api/employee_detail',UserController.getEmployeeDetail);
+
+  
+  router.post('/api/add_employee',UserController.addEmployee);
+  router.post('/api/update_employee',UserController.updateEmployee);
+  router.get('/api/resetPass_employee',UserController.resetPassEmployee);
+  router.get('/api/customer_list',UserController.customerList);
+  router.get('/api/customer_disable',UserController.customerDisable);
+
+  router.get('/api/getstatistical',UserController.getStatistical);
+
+
+
+
+
+
+
+
+
 
 
 
@@ -127,24 +164,42 @@ const initAPIRoute = (app) => {
   router.post('/api/admin/product_update', ProductController.postProductUpdate);
 
 
+  router.get('/api/senior-admin/list-promotion', ProductController.getPromotionList);
+  router.get('/api/senior-admin/list-product-promotion', ProductController.getPromotionListPromotion);
+  router.get('/api/senior-admin/list-product', ProductController.getListProduct);
+  router.get('/api/senior-admin/detail-promotion', ProductController.getDetailPromotion);
 
-
-
-  
-
-  // TEST MVC
-
-  // router.get("/api/category",APIController.getCategory);
-  // router.get("/api/color",APIController.getColor);
-  // router.get("/api/material",APIController.getMaterial);
-  // router.get("/api/style",APIController.getStyle);
+  router.post('/api/senior-admin/Update-detail-promotion', ProductController.postUpdateDetailPromotion);
 
 
   
-  // router.post("/auth/login",APIController.userLogin);
-  // router.post("/auth/register",APIController.userRegister);
 
-  // app.post('/upload', upload.single('image'),APIController.postUploadImage );
+  router.post('/api/senior-admin/add-promotion', ProductController.postAddPromotion);
+  router.post('/api/senior-admin/add-product-promotion', ProductController.postAddProductPromotion);
+  router.post('/api/senior-admin/remove-product-promotion', ProductController.postRemoveProductPromotion);
+
+
+  router.get('/api/admin/statistical', ProductController.getStatistical);
+
+
+  // app.post('/upload', upload.single('image'),ProductController.postUploadImage );
+
+  app.post('/upload', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        throw new Error('No file uploaded');
+      }
+  
+      // Xử lý upload ảnh lên Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path);
+      const imageUrl = result.secure_url;
+      console.log(imageUrl)
+      res.send({ imageUrl });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      res.status(500).send({ error: error.message });
+    }
+  });
 
   
 

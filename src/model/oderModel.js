@@ -7,7 +7,7 @@ const transporter = nodemailer.createTransport({
   port: 587,
   auth: {
     user: 'a22e67f3edfb6923d2c0b6b3d91bc29e',
-    pass: 'c96e373b5a770c7045d13da6667bf242',
+    pass: 'd9b6bee006bf752a52bb12d5c4bb7cbd',
   },
 });
 class OderModel {
@@ -76,15 +76,18 @@ class OderModel {
         throw new Error('Lỗi khi đăng ký');
     }
 }  
-    static async order_list_wait(filter_order){
+    static async order_list_wait(filter_order,filter_order2){
         try {
-            let query=`SELECT DISTINCT order_id, user_id,don_hang.order_date,total_price,payment_method_id FROM don_hang WHERE order_status=0`;
-            if(filter_order=="dateHighToLow"){
-              query+=` ORDER BY don_hang.order_date DESC`
-            }
-            if(filter_order=="idHighToLow"){
-              query+=` ORDER BY don_hang.order_id DESC`
-            }
+            let filter2=filter_order2?filter_order2:0
+            let query=`SELECT DISTINCT order_id, user_id,don_hang.order_date,total_price,payment_method_id,order_status FROM don_hang WHERE order_status=${filter2} `;
+            
+            query+=`ORDER BY don_hang.order_id DESC`
+            // if(filter_order=="dateHighToLow"){
+            //   query+=`ORDER BY don_hang.order_id, don_hang.order_date DESC`
+            // }
+            // if(filter_order=="idHighToLow"){
+            //   query+=`ORDER BY don_hang.order_id, don_hang.order_id DESC`
+            // }
             const [rows, fields] = await pool.execute(query);
             return rows;
           } catch (error) {
@@ -124,9 +127,9 @@ class OderModel {
         }
   }
 
-    static async delivery_list(){
+    static async delivery_list(filter){
       try {
-          const [rows, fields] = await pool.execute(`SELECT DISTINCT * FROM don_hang join thong_tin_giao_hang on don_hang.delivery_id=thong_tin_giao_hang.delivery_id WHERE don_hang.order_status=1`);
+          const [rows, fields] = await pool.execute(`SELECT DISTINCT * FROM don_hang join thong_tin_giao_hang on don_hang.delivery_id=thong_tin_giao_hang.delivery_id WHERE don_hang.order_status=1 AND thong_tin_giao_hang.delevery_status=${filter} ORDER BY don_hang.order_id DESC`);
           return rows;
         } catch (error) {
           console.error(error);
